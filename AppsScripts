@@ -1,0 +1,87 @@
+/** @OnlyCurrentDoc */
+function sortTableAscending() {
+  var sheet = SpreadsheetApp.getActiveSheet();
+  // Get the data range, assuming headers are in the first row (starts from row 2)
+  var range = sheet.getRange("A2:F50");
+  // Sort by column 1 (A) in ascending order (true)
+  range.sort({column: 5, ascending: true});
+}
+function checkDates() {
+
+
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+
+  const data = sheet.getDataRange().getValues(); /** Captures everything in the sheet that has content. Return as 2D array (data[row][column]) */
+
+  const dateList = [];
+
+
+  for (let i = 1; i < 50; i++)
+  {
+    if(dateList.includes(data[i][4])== true)
+    {
+
+    } else{
+        dateList.push(data[i][4]);
+        //console.log("Entry should be created")
+    }
+
+  }
+  let m = 2; // This counts what row to put the data in
+    // Clear out old data
+  //const clearRange = sheet.getRange("H2:K50");
+  //clearRange.clearContent();
+  for (j of dateList) // Run checks by each Date in the list created above
+  {
+
+    let k = 1; // This is a counter to iterate through each row and count footage
+    this.currentDate = j
+
+    // This is setting what cell to target during each iteration of the function
+    this.DateCell = sheet.getRange(m,8)
+    this.FootageCell = sheet.getRange(m,11)
+    this.TotalJobs = sheet.getRange(m,9)
+    this.TotalItems = sheet.getRange(m,10)
+    this.CurrentDateCell = sheet.getRange(m,5)
+    
+    // Variable Declarations
+    this.currentDateJobs = 0 // Count how many jobs are being included in the count
+    this.ItemCount = 0
+    this.CurrentJobCount = 0
+    this.currentDateTotal = 0 // Set Total to = before each date is counted
+    console.log("Checking to see if line before re-set of k runs")
+    k = 1;
+    while (k < 50) // This function is iterating through each entry again, checking for dates and adding footage totals
+    {
+      console.log("Checking to see if k is being skipped on concurrent executions")
+      // Check the top 50 jobs entered, verify if they are due the same date as current Date Selected
+      if (this.CurrentDateCell.isBlank()){
+
+      } else{
+
+      
+          if (this.currentDate == data[k][4])
+          {
+            this.currentDateTotal += data[k][2];
+
+            this.ItemCount += data[k][3]; // If the date is matching, add the items from this entry to our total
+            this.CurrentJobCount++; // If the date is matching, add 1 job to the total job count
+          }
+          
+       
+      }
+         k++; // Move down 1 row
+      }
+
+    // Set the cell Totals before iterating to the next entry.
+    this.DateCell.setValue(currentDate);
+    this.FootageCell.setValue(currentDateTotal);
+    this.TotalJobs.setValue(this.CurrentJobCount);
+    this.TotalItems.setValue(this.ItemCount);
+    console.log("DateCellEntry: "+ currentDate + "FootageCellEntry: " + currentDateTotal + "TotalJobsEntry: " + this.CurrentJobCount + "TotalItemsEntry: " + this.ItemCount);
+    
+    
+    m++; // Make sure that the row is updated for each date
+    j = 1;
+  }
+}
