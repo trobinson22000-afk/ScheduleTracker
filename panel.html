@@ -1,29 +1,831 @@
 <!DOCTYPE html>
-<html lang = "en">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name ="viewport" content="width=device-width, intial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Production Scheduler</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700 &display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    : root {
-        --bg: #0f1117;
-        --surface: #171b26;
-        --surface2: #1e2334;
-        --border: #2a2f42;
-        --accent: #f4a826;
-        --accent-dim: #f4a82622;
-        --text: #d8dce8;
-        --text-dim: #6b7494;
-        --red: #e05c5c;
-        --green: #4cc98a;
-        --blue: #4b9eff;
-        --mono: 'Share Tech Mono', monospace;
-        --sans: 'Barlow', sans-serif;
+    :root {
+      --bg:         #0f1117;
+      --surface:    #171b26;
+      --surface2:   #1e2334;
+      --border:     #2a2f42;
+      --accent:     #f4a826;
+      --accent-dim: #f4a82622;
+      --text:       #d8dce8;
+      --text-dim:   #6b7494;
+      --red:        #e05c5c;
+      --green:      #4cc98a;
+      --blue:       #4b9eff;
+      --mono:       'Share Tech Mono', monospace;
+      --sans:       'Barlow', sans-serif;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0;}
-    
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      height: 54px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      gap: 4px;
+    }
+
+    .nav-brand {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      margin-right: 32px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .nav-brand span {
+      color: var(--text-dim);
+    }
+
+    nav a {
+      text-decoration: none;
+      color: var(--text-dim);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 4px;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    nav a:hover { color: var(--text); background: var(--surface2); }
+    nav a.active { color: var(--accent); background: var(--accent-dim); }
+
+    /* ── MAIN ── */
+    main {
+      padding: 28px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .page-header .datestamp {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--accent);
+    }
+
+    /* ── GRID ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 20px;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 22px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .card:nth-child(1) { animation-delay: 0.05s; }
+    .card:nth-child(2) { animation-delay: 0.10s; }
+    .card:nth-child(3) { animation-delay: 0.15s; }
+    .card:nth-child(4) { animation-delay: 0.20s; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .card-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .card-badge {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+
+    /* ── CHART CARD (1) ── */
+    .chart-controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chip {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.05em;
+    }
+
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+    .chip.active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+    .chart-wrap {
+      position: relative;
+      height: 220px;
+    }
+
+    /* ── STATS CARD (2) ── */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-block {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .stat-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+    }
+
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    .stat-value.accent { color: var(--accent); }
+    .stat-value.green  { color: var(--green); }
+    .stat-value.blue   { color: var(--blue); }
+
+    .stat-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+      font-weight: 300;
+    }
+
+    .job-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow-y: auto;
+      max-height: 120px;
+    }
+
+    .job-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: var(--surface2);
+      border-radius: 5px;
+      border: 1px solid var(--border);
+      transition: border-color 0.15s;
+    }
+
+    .job-row:hover { border-color: var(--accent); }
+
+    .job-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .job-meta {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .status-dot.in-progress { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+    .status-dot.queued      { background: var(--blue); }
+    .status-dot.complete    { background: var(--green); }
+
+    /* ── SEARCH CARD (3) ── */
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: border-color 0.15s;
+    }
+
+    .search-box:focus-within { border-color: var(--accent); }
+
+    .search-box input {
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 10px 14px;
+      flex: 1;
+    }
+
+    .search-box input::placeholder { color: var(--text-dim); }
+
+    .search-box button {
+      background: var(--accent-dim);
+      border: none;
+      border-left: 1px solid var(--border);
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      padding: 10px 16px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .search-box button:hover { background: var(--accent); color: var(--bg); }
+
+    .search-results {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-height: 140px;
+    }
+
+    .search-empty {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-dim);
+      text-align: center;
+      padding: 32px 0;
+    }
+
+    .search-result-row {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 12px;
+      padding: 9px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .search-result-row:hover { border-color: var(--accent); }
+
+    .result-name {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .result-due {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .tag {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.08em;
+      padding: 2px 7px;
+      border-radius: 3px;
+    }
+
+    .tag.in-progress { background: #f4a82622; color: var(--accent); border: 1px solid #f4a82644; }
+    .tag.queued      { background: #4b9eff22; color: var(--blue);   border: 1px solid #4b9eff44; }
+    .tag.complete    { background: #4cc98a22; color: var(--green);  border: 1px solid #4cc98a44; }
+
+    /* ── LOOKUP CARD (4) ── */
+    .lookup-inner {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 14px;
+      padding: 20px 0;
+      border: 1px dashed var(--border);
+      border-radius: 6px;
+    }
+
+    .lookup-icon {
+      font-size: 28px;
+      opacity: 0.35;
+    }
+
+    .lookup-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--text-dim);
+      text-transform: uppercase;
+    }
+
+    .lookup-input-row {
+      display: flex;
+      gap: 8px;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .lookup-input-row input {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 9px 12px;
+      flex: 1;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .lookup-input-row input:focus { border-color: var(--accent); }
+
+    .lookup-input-row button {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 9px 14px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .lookup-input-row button:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--bg);
+    }
+
+    .coming-soon-pill {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    /* ── PAGE STUBS ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .stub-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 60vh;
+      gap: 12px;
+      opacity: 0.4;
+    }
+
+    .stub-content h2 {
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .stub-content p {
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   </style>
 </head>
+<body>
+
+<nav>
+  <div class="nav-brand">PROD<span>/</span>SCHED</div>
+  <a href="#" class="active" data-page="home">Home</a>
+  <a href="#" data-page="inventory">Material Inventory</a>
+  <a href="#" data-page="schedule">Schedule</a>
+  <a href="#" data-page="items">Item Information</a>
+  <a href="#" data-page="dies">Die Information</a>
+</nav>
+
+<main>
+
+  <!-- ══ HOME PAGE ══ -->
+  <div id="page-home" class="page active">
+    <div class="page-header">
+      <h1>// Dashboard</h1>
+      <span class="datestamp" id="datestamp"></span>
+    </div>
+
+    <div class="dashboard-grid">
+
+      <!-- CARD 1 — Chart -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Footage Due by Date</span>
+          <span class="card-badge" id="chart-mode-label">BAR</span>
+        </div>
+        <div class="chart-controls">
+          <button class="chip active" data-chart="bar">Bar</button>
+          <button class="chip" data-chart="pie">Pie</button>
+          <button class="chip active" data-filter="all" data-group="range">All</button>
+          <button class="chip" data-filter="7d" data-group="range">7 Days</button>
+          <button class="chip" data-filter="30d" data-group="range">30 Days</button>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="footageChart"></canvas>
+        </div>
+      </div>
+
+      <!-- CARD 2 — Stats -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Job Summary</span>
+          <span class="card-badge">LIVE</span>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-block">
+            <span class="stat-label">Total Footage</span>
+            <span class="stat-value accent" id="stat-footage">—</span>
+            <span class="stat-sub">linear ft</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label">Unique Dies</span>
+            <span class="stat-value green" id="stat-dies">—</span>
+            <span class="stat-sub">die numbers</span>
+          </div>
+          <div class="stat-block">
+            <span class="stat-label">Materials</span>
+            <span class="stat-value blue" id="stat-materials">—</span>
+            <span class="stat-sub">types in use</span>
+          </div>
+        </div>
+
+        <div class="card-header" style="margin-top:4px;">
+          <span class="card-title">Active Jobs</span>
+        </div>
+        <div class="job-list" id="job-list"></div>
+      </div>
+
+      <!-- CARD 3 — Search -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Job Search</span>
+        </div>
+        <div class="search-box">
+          <input type="text" id="search-input" placeholder="Search by job name, die, material…" />
+          <button onclick="runSearch()">SEARCH</button>
+        </div>
+        <div class="search-results" id="search-results">
+          <div class="search-empty">Enter a query to search active jobs</div>
+        </div>
+      </div>
+
+      <!-- CARD 4 — Item Lookup -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Item Lookup</span>
+          <span class="coming-soon-pill">More Coming Soon</span>
+        </div>
+        <div class="lookup-inner">
+          <div class="lookup-icon">🔍</div>
+          <div class="lookup-label">Look up by Item #</div>
+          <div class="lookup-input-row">
+            <input type="text" placeholder="e.g. ITM-00482" id="lookup-input" />
+            <button onclick="runLookup()">GO</button>
+          </div>
+          <div id="lookup-result" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);"></div>
+        </div>
+      </div>
+
+    </div><!-- /dashboard-grid -->
+  </div><!-- /page-home -->
+
+  <!-- ══ STUB PAGES ══ -->
+  <div id="page-inventory" class="page">
+    <div class="stub-content">
+      <h2>Material Inventory</h2>
+      <p>Page not yet implemented</p>
+    </div>
+  </div>
+
+  <div id="page-schedule" class="page">
+    <div class="stub-content">
+      <h2>Schedule</h2>
+      <p>Page not yet implemented</p>
+    </div>
+  </div>
+
+  <div id="page-items" class="page">
+    <div class="stub-content">
+      <h2>Item Information</h2>
+      <p>Page not yet implemented</p>
+    </div>
+  </div>
+
+  <div id="page-dies" class="page">
+    <div class="stub-content">
+      <h2>Die Information</h2>
+      <p>Page not yet implemented</p>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // ─── MOCK DATA ─────────────────────────────────────────────
+  // Replace this with your API fetch() when you have access
+  const allJobs = [
+    { id: 1, name: "Run A — Banner Vinyl",    status: "in-progress", dueDate: "2026-04-03", material: "Vinyl",    footage: 320, dieNumber: "D-204", itemNumber: "ITM-00101" },
+    { id: 2, name: "Run B — Mesh Panels",     status: "queued",      dueDate: "2026-04-04", material: "Mesh",     footage: 150, dieNumber: "D-117", itemNumber: "ITM-00482" },
+    { id: 3, name: "Run C — Cling Sheets",    status: "queued",      dueDate: "2026-04-04", material: "Cling",    footage: 200, dieNumber: "D-309", itemNumber: "ITM-00205" },
+    { id: 4, name: "Run D — Canvas Wrap",     status: "in-progress", dueDate: "2026-04-07", material: "Canvas",   footage: 400, dieNumber: "D-204", itemNumber: "ITM-00318" },
+    { id: 5, name: "Run E — Vinyl Decals",    status: "queued",      dueDate: "2026-04-08", material: "Vinyl",    footage: 180, dieNumber: "D-412", itemNumber: "ITM-00621" },
+    { id: 6, name: "Run F — Fabric Banners",  status: "complete",    dueDate: "2026-04-02", material: "Fabric",   footage: 260, dieNumber: "D-117", itemNumber: "ITM-00097" },
+    { id: 7, name: "Run G — Reflective Film", status: "queued",      dueDate: "2026-04-10", material: "Reflect",  footage: 90,  dieNumber: "D-501", itemNumber: "ITM-00734" },
+    { id: 8, name: "Run H — Polypro Sheet",   status: "in-progress", dueDate: "2026-04-10", material: "Polypro",  footage: 310, dieNumber: "D-309", itemNumber: "ITM-00856" },
+  ];
+
+  // ─── DATESTAMP ─────────────────────────────────────────────
+  const now = new Date();
+  document.getElementById('datestamp').textContent =
+    now.toLocaleDateString('en-US', { weekday:'short', year:'numeric', month:'short', day:'numeric' }).toUpperCase();
+
+  // ─── NAV ────────────────────────────────────────────────────
+  document.querySelectorAll('nav a').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('nav a').forEach(a => a.classList.remove('active'));
+      link.classList.add('active');
+      const page = link.dataset.page;
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+    });
+  });
+
+  // ─── STATS ─────────────────────────────────────────────────
+  function computeStats(jobs) {
+    const footage   = jobs.reduce((s, j) => s + j.footage, 0);
+    const dies      = new Set(jobs.map(j => j.dieNumber)).size;
+    const materials = new Set(jobs.map(j => j.material)).size;
+    document.getElementById('stat-footage').textContent   = footage.toLocaleString();
+    document.getElementById('stat-dies').textContent      = dies;
+    document.getElementById('stat-materials').textContent = materials;
+  }
+  computeStats(allJobs);
+
+  // ─── JOB LIST ───────────────────────────────────────────────
+  function renderJobList(jobs) {
+    const el = document.getElementById('job-list');
+    el.innerHTML = jobs.slice(0,6).map(j => `
+      <div class="job-row">
+        <span class="status-dot ${j.status}"></span>
+        <span class="job-name">${j.name}</span>
+        <span class="job-meta">${j.footage} ft · ${j.dueDate}</span>
+      </div>
+    `).join('');
+  }
+  renderJobList(allJobs);
+
+  // ─── CHART ──────────────────────────────────────────────────
+  let currentType   = 'bar';
+  let currentFilter = 'all';
+
+  function getFilteredJobs() {
+    const today = new Date();
+    return allJobs.filter(j => {
+      if (j.status === 'complete') return false;
+      if (currentFilter === '7d') {
+        const due = new Date(j.dueDate);
+        return (due - today) / 86400000 <= 7;
+      }
+      if (currentFilter === '30d') {
+        const due = new Date(j.dueDate);
+        return (due - today) / 86400000 <= 30;
+      }
+      return true;
+    });
+  }
+
+  function buildChartData(jobs) {
+    const byDate = {};
+    jobs.forEach(j => {
+      byDate[j.dueDate] = (byDate[j.dueDate] || 0) + j.footage;
+    });
+    const sorted = Object.keys(byDate).sort();
+    return { labels: sorted, values: sorted.map(d => byDate[d]) };
+  }
+
+  const PALETTE = ['#f4a826','#4b9eff','#4cc98a','#e05c5c','#a78bfa','#fb923c','#22d3ee','#f472b6'];
+
+  const ctx = document.getElementById('footageChart').getContext('2d');
+  let footageChart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: [], datasets: [{ data: [] }] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#6b7494', font: { family: 'Share Tech Mono', size: 10 } }, grid: { color: '#2a2f42' } },
+        y: { ticks: { color: '#6b7494', font: { family: 'Share Tech Mono', size: 10 } }, grid: { color: '#2a2f42' } }
+      }
+    }
+  });
+
+  function updateChart() {
+    const jobs = getFilteredJobs();
+    const { labels, values } = buildChartData(jobs);
+    footageChart.destroy();
+
+    const isPie = currentType === 'pie';
+    document.getElementById('chart-mode-label').textContent = isPie ? 'PIE' : 'BAR';
+
+    footageChart = new Chart(ctx, {
+      type: isPie ? 'doughnut' : 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Footage',
+          data: values,
+          backgroundColor: isPie ? PALETTE : '#f4a82688',
+          borderColor:     isPie ? PALETTE : '#f4a826',
+          borderWidth: isPie ? 2 : 1,
+          borderRadius: isPie ? 0 : 4,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: isPie,
+            labels: { color: '#d8dce8', font: { family: 'Share Tech Mono', size: 10 } }
+          }
+        },
+        scales: isPie ? {} : {
+          x: { ticks: { color: '#6b7494', font: { family: 'Share Tech Mono', size: 10 } }, grid: { color: '#2a2f42' } },
+          y: { ticks: { color: '#6b7494', font: { family: 'Share Tech Mono', size: 10 } }, grid: { color: '#2a2f42' } }
+        }
+      }
+    });
+  }
+
+  updateChart();
+
+  // Chart type chips
+  document.querySelectorAll('[data-chart]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-chart]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentType = btn.dataset.chart;
+      updateChart();
+    });
+  });
+
+  // Range filter chips
+  document.querySelectorAll('[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      updateChart();
+    });
+  });
+
+  // ─── SEARCH ─────────────────────────────────────────────────
+  document.getElementById('search-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') runSearch();
+  });
+
+  function runSearch() {
+    const q = document.getElementById('search-input').value.trim().toLowerCase();
+    const el = document.getElementById('search-results');
+
+    if (!q) {
+      el.innerHTML = '<div class="search-empty">Enter a query to search active jobs</div>';
+      return;
+    }
+
+    const hits = allJobs.filter(j =>
+      j.name.toLowerCase().includes(q) ||
+      j.dieNumber.toLowerCase().includes(q) ||
+      j.material.toLowerCase().includes(q) ||
+      j.itemNumber.toLowerCase().includes(q)
+    );
+
+    if (!hits.length) {
+      el.innerHTML = '<div class="search-empty">No matching jobs found</div>';
+      return;
+    }
+
+    el.innerHTML = hits.map(j => `
+      <div class="search-result-row">
+        <span class="result-name">${j.name}</span>
+        <span class="result-due">Due ${j.dueDate}</span>
+        <span class="tag ${j.status}">${j.status.replace('-',' ')}</span>
+      </div>
+    `).join('');
+  }
+
+  // ─── ITEM LOOKUP ────────────────────────────────────────────
+  function runLookup() {
+    const q = document.getElementById('lookup-input').value.trim().toUpperCase();
+    const el = document.getElementById('lookup-result');
+    if (!q) { el.textContent = ''; return; }
+
+    const match = allJobs.find(j => j.itemNumber.toUpperCase() === q);
+    if (match) {
+      el.style.color = 'var(--green)';
+      el.textContent = `✓ Found: ${match.name} · ${match.footage} ft · Due ${match.dueDate}`;
+    } else {
+      el.style.color = 'var(--red)';
+      el.textContent = `✗ No item found for "${q}"`;
+    }
+  }
+
+  document.getElementById('lookup-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') runLookup();
+  });
+</script>
+</body>
+</html>
