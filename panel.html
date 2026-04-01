@@ -13,8 +13,8 @@
       --surface:    #171b26;
       --surface2:   #1e2334;
       --border:     #2a2f42;
-      --accent:     #f4a826;
-      --accent-dim: #f4a82622;
+      --accent:     #8BC53F;
+      --accent-dim: #8BC53F2;
       --text:       #d8dce8;
       --text-dim:   #6b7494;
       --red:        #e05c5c;
@@ -570,7 +570,7 @@
           <div class="lookup-icon">🔍</div>
           <div class="lookup-label">Look up by Item #</div>
           <div class="lookup-input-row">
-            <input type="text" placeholder="e.g. ITM-00482" id="lookup-input" />
+            <input type="text" placeholder="e.g. #07002-20141446-LB" id="lookup-input" />
             <button onclick="runLookup()">GO</button>
           </div>
           <div id="lookup-result" style="font-family:var(--mono);font-size:11px;color:var(--text-dim);"></div>
@@ -615,14 +615,14 @@
   // ─── MOCK DATA ─────────────────────────────────────────────
   // Replace this with your API fetch() when you have access
   const allJobs = [
-    { id: 1, name: "Run A — Banner Vinyl",    status: "in-progress", dueDate: "2026-04-03", material: "Vinyl",    footage: 320, dieNumber: "D-204", itemNumber: "ITM-00101" },
-    { id: 2, name: "Run B — Mesh Panels",     status: "queued",      dueDate: "2026-04-04", material: "Mesh",     footage: 150, dieNumber: "D-117", itemNumber: "ITM-00482" },
-    { id: 3, name: "Run C — Cling Sheets",    status: "queued",      dueDate: "2026-04-04", material: "Cling",    footage: 200, dieNumber: "D-309", itemNumber: "ITM-00205" },
-    { id: 4, name: "Run D — Canvas Wrap",     status: "in-progress", dueDate: "2026-04-07", material: "Canvas",   footage: 400, dieNumber: "D-204", itemNumber: "ITM-00318" },
-    { id: 5, name: "Run E — Vinyl Decals",    status: "queued",      dueDate: "2026-04-08", material: "Vinyl",    footage: 180, dieNumber: "D-412", itemNumber: "ITM-00621" },
-    { id: 6, name: "Run F — Fabric Banners",  status: "complete",    dueDate: "2026-04-02", material: "Fabric",   footage: 260, dieNumber: "D-117", itemNumber: "ITM-00097" },
-    { id: 7, name: "Run G — Reflective Film", status: "queued",      dueDate: "2026-04-10", material: "Reflect",  footage: 90,  dieNumber: "D-501", itemNumber: "ITM-00734" },
-    { id: 8, name: "Run H — Polypro Sheet",   status: "in-progress", dueDate: "2026-04-10", material: "Polypro",  footage: 310, dieNumber: "D-309", itemNumber: "ITM-00856" },
+    { id: 1, name: "232652",    status: "Scheduled", dueDate: "2026-04-08", material: "014",    footage: 32000, dieNumber: "10846", itemNumber: "20141085" },
+    { id: 2, name: "255555",     status: "Scheduled",      dueDate: "2026-04-15", material: "179",     footage: 1500, dieNumber: "10847", itemNumber: "20141250" },
+    { id: 3, name: "198452",    status: "Scheduled",      dueDate: "2026-04-12", material: "183",    footage: 2000, dieNumber: "11412", itemNumber: "23069 1142" },
+    { id: 4, name: "854752",     status: "in-progress", dueDate: "2026-04-07", material: "183",   footage: 4000, dieNumber: "11086", itemNumber: "23069 1143" },
+    { id: 5, name: "541287",    status: "Scheduled",      dueDate: "2026-04-08", material: "072",    footage: 1080, dieNumber: "11104", itemNumber: "112" },
+    { id: 6, name: "486584",  status: "complete",    dueDate: "2026-04-02", material: "183",   footage: 26000, dieNumber: "9700", itemNumber: "850" },
+    { id: 7, name: "552525", status: "Scheduled",      dueDate: "2026-04-10", material: "004",  footage: 900,  dieNumber: "9894", itemNumber: "734" },
+    { id: 8, name: "457866",   status: "Scheduled", dueDate: "2026-04-10", material: "183",  footage: 3100, dieNumber: "11149", itemNumber: "856" },
   ];
 
   // ─── DATESTAMP ─────────────────────────────────────────────
