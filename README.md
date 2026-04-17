@@ -10,4 +10,4 @@
 - Add API calls to automate the process with the current schedule system (Will not commit this update online, the moment I create this update this project will remain stagnant on gitHub for security reasons)
 - Add notifiers to display whether material/tools are on hand to allow maximum response time ahead of due dates
 - Customizable colors for the panel
-- Restructure the panel to allow it to run on cloud environments. I would like to build this panel to be utilized via private Azure services to remove the single computer restriction the current version has
+- Restructure the panel to allow it to run on cloud environments. I would like to build this panel to be utilized on local networks to remove the single computer restriction the current version has
